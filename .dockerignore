@@ -2,8 +2,8 @@ target
 **/target
 .git
 .idea
-data
-**/data
+/data/
+/wallet/data/
 .env
 cookies.txt
 src/main/resources/application-development.yml

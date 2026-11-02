@@ -43,7 +43,8 @@ $env:WALLET_SECURE_COOKIE = 'false'
 & "$env:JAVA_HOME/bin/java.exe" -jar wallet/target/wallet-1.0-SNAPSHOT.jar
 ```
 
-The two demo identities are `alice` and `bob`; passwords must be 12–72 characters (at most 72 UTF-8 bytes).
+The two demo identities are `alice` and `bob`; both passwords must be nonblank.
+Choose long passwords of at most 72 UTF-8 bytes for BCrypt; no minimum length is enforced beyond nonblank validation.
 Set your own values; no application password is committed. Passwords are BCrypt hashed at startup.
 Only disable secure cookies for local HTTP. For deployment, use HTTPS termination and leave secure cookies enabled.
 
@@ -108,7 +109,7 @@ The README session example handles the complete flow explicitly.
 2. **Rate units:** retain the quoted units and CZK amount. Convert A to B with
    `amount × rateA × unitsB / (unitsA × rateB)`, avoiding premature normalization/rounding.
 3. **CNB unavailable:** lazily refresh at most once per five minutes, including after failures; use 2s connect and 4s request timeouts.
-   Requests share one immutable snapshot. Validate the entire response (maximum 64 KiB), reject duplicates, nonpositive rates,
+   Requests share one immutable snapshot. Validate the entire response, reject duplicates, nonpositive rates,
    future dates and regression to an older date. Save the complete snapshot in one H2 transaction before publishing it in memory.
    At startup reload it from H2 and attempt a refresh on the first request that needs rates.
    On fetch failure retain it and return `freshRateSnapshot: false` for converted totals. No automatic age cutoff: the date is explicit,
@@ -126,9 +127,9 @@ The README session example handles the complete flow explicitly.
    missing/invalid credentials: 401; denied access/CSRF: 403; insufficient funds: 409; unavailable required rates: 503.
    Unexpected failures return a generic 500. Security filtering may reject a request before validating its body.
    Domain errors extend the abstract checked `WalletException`: `AmountException` distinguishes invalid input from
-   balance limits; `RateException` distinguishes unavailable rates from a missing currency rate. Other concrete types
-   cover unsupported currency, insufficient funds and a missing wallet. Context attributes remain on Java exceptions;
-   HTTP statuses, error codes and public response fields are unchanged. Wallet transactions explicitly roll back on `WalletException`.
+   balance limits; `RateException` distinguishes unavailable rates from a missing currency rate through its message. Other concrete types
+   cover unsupported currency, insufficient funds and a missing wallet. Exceptions carry an HTTP status, application error code,
+   and message. Wallet transactions explicitly roll back on `WalletException`.
 7. **CZK:** a synthetic rate of exactly 1 CZK per 1 CZK, independent of CNB availability.
 
 Official source: [CNB daily text feed](https://www.cnb.cz/en/financial-markets/foreign-exchange-market/central-bank-exchange-rate-fixing/central-bank-exchange-rate-fixing/daily.txt),
@@ -145,7 +146,13 @@ it does not authenticate wallet requests. Use HTTPS for both sessions and metric
 
 Actuator exposes health and Prometheus only. Framework metrics cover HTTP/JVM/DB connections.
 Enable business flow logs with `LOGGING_LEVEL_COM_WULTRA_WALLET=TRACE`.
-Logs describe actions and safe metadata, without credentials, authorization headers, balances or request bodies.
+The custom RequestResponseLoggingFilter logs REQUEST and RESPONSE method, path, headers, bodies, and
+response status at DEBUG level. Enable it separately with
+`LOGGING_LEVEL_COM_WULTRA_WALLET_FILTER=DEBUG`. Setting the whole application package to TRACE also enables it.
+Authentication endpoint bodies, authorization headers, cookies, and CSRF headers are redacted.
+Query parameters are omitted. Request bodies are cached up to 16 KiB as they are consumed downstream;
+response bodies are logged in full. Bodies are decoded as UTF-8. Wallet bodies include amounts.
+The filter buffers responses while enabled and targets the current synchronous API.
 These are operational logs, not a durable financial audit ledger.
 
 ## Docker
@@ -161,21 +168,31 @@ the build runs tests. Named volume `wallet-data` preserves balances and rates wh
 ## Tests and limits
 
 `mvn verify` tests API validation, cross rates, rate units, rounding, ownership isolation, authentication, session rotation,
-CSRF, monitoring protection, concurrent withdrawals, corrupt/oversized CNB responses, fallback/recovery,
+CSRF, monitoring protection, concurrent withdrawals, malformed CNB responses, fallback/recovery,
 and H2 snapshot persistence across database reopening. Network tests use a local HTTP server, not live CNB.
 
-Verified locally: all 18 tests pass; the packaged JAR completed the example workflow against live CNB,
-then restored the same valuation from file H2 after forced process termination with CNB unavailable.
-Dockerfile execution was not verified because no Docker daemon was running.
+Verified on 2026-11-02 from an isolated export of the tracked sources with the test fixture correction:
+
+- `mvn -B clean verify` passed all 29 tests (26 application tests and 3 rate client tests), with no failures or skips.
+- The Dockerfile built successfully, including its Maven verification step, and the container health endpoint returned `UP`.
+- The running container completed CSRF retrieval, login, token renewal, deposits of 10 USD and 5 EUR, withdrawal of 3 USD,
+  and total valuations in USD and EUR using live CNB rates. Swagger/OpenAPI, account isolation, error responses,
+  and request/response logs with password masking were also checked.
+- Recreating the container with the same isolated H2 volume and an unreachable CNB URL preserved both balances and
+  the previous valuation, returning `freshRateSnapshot: false`. H2 rounds the retrieval timestamp to microsecond precision.
+
+The logging filter test fixture was corrected to use a valid `Set-Cookie` header (`name=value`). Verification used
+a temporary container and database volume, which were removed afterwards; existing application data was not used.
 
 Single application instance with embedded H2; two configured demo users, no account lifecycle, transfer endpoint,
 transaction history, distributed sessions or idempotency keys. Retrying a successful deposit/withdrawal can apply it twice.
 No login rate limiter: deployment would need an ingress limit before public exposure. No schema migration framework;
 `wallet-db/src/main/resources/schema.sql` initializes this small fixed schema and is not an upgrade mechanism.
 Hibernate validates the existing schema (`ddl-auto=validate`); it does not recreate tables.
-Repositories use Spring Data JPA (`JpaRepository`) with derived methods such as `findByOwner` and `findAllByIdOwner`.
+Repositories use Spring Data JPA (`JpaRepository`) with derived methods such as `findByOwner` and `findAllByIdWalletOwner`.
 `@Lock(PESSIMISTIC_WRITE)` protects wallet changes. Persistence services own transaction boundaries and validation;
-managed balance updates are persisted by dirty checking inside the transaction. No handwritten JPQL is needed.
+managed balance updates are persisted by dirty checking inside the transaction. Explicit JPQL queries load snapshots
+with their rates and delete all balances belonging to an owner.
 Open EntityManager in View is disabled, so persistence contexts remain within database operations.
 Cache can remain old throughout a prolonged outage, with its date exposed. No historical rate archive.
 No MCP server or Prometheus deployment in this step.

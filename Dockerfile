@@ -2,7 +2,7 @@ FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /build
 COPY pom.xml .
 COPY wallet-api ./wallet-api
-COPY rate-download-client ./rate-download-client
+COPY wallet-rate-fetch-client ./wallet-rate-fetch-client
 COPY wallet-db ./wallet-db
 COPY wallet ./wallet
 RUN mvn -B verify
