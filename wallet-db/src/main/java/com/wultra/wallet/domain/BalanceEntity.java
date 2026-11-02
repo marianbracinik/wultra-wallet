@@ -18,6 +18,9 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+/**
+ * Stores a wallet's balance in a single currency, identified by the wallet and currency code.
+ */
 @Getter
 @Entity
 @Table(name = "balance")
@@ -32,6 +35,9 @@ public class BalanceEntity {
     @Column(nullable = false, precision = 30, scale = 4)
     private BigDecimal amount;
 
+    /**
+     * Composite balance primary key consisting of the owning wallet and currency code.
+     */
     @Embeddable
     @Data
     @NoArgsConstructor

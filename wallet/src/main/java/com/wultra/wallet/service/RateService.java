@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.Instant;
 
+/**
+ * Caches exchange rate snapshots and refreshes them at the configured interval.
+ * Retains the last available snapshot when fetching or persisting new rates fails.
+ */
 @Slf4j
 @Service
 public class RateService {
@@ -22,6 +26,14 @@ public class RateService {
 
     private RateSnapshot snapshot;
 
+    /**
+     * Creates the service and loads any persisted snapshot as a fallback.
+     *
+     * @param dbService snapshot persistence service
+     * @param configuration refresh configuration
+     * @param rateFetchClient CNB rate client
+     * @param clock clock used to schedule refresh attempts
+     */
     public RateService(DbServiceService dbService, WalletConfigurationProperties configuration, RateFetchClient rateFetchClient, Clock clock) {
         this.dbService = dbService;
         this.rateFetchClient = rateFetchClient;
@@ -30,6 +42,13 @@ public class RateService {
         this.snapshot = dbService.loadRateSnapshot().orElse(null);
     }
 
+    /**
+     * Returns the cached snapshot, attempting a refresh when the refresh interval has elapsed.
+     * A failed refresh retains the last available snapshot and marks it as not fresh.
+     *
+     * @return latest available snapshot
+     * @throws RateException if no snapshot is available
+     */
     public synchronized RateSnapshot getRateSnapshot() throws RateException {
         Instant now = clock.instant();
         if (!now.isBefore(nextRefresh)) {

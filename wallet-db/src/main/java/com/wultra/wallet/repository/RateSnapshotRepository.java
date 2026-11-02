@@ -6,7 +6,16 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
+/**
+ * Persists exchange rate snapshot metadata and supports loading a snapshot with its rates.
+ */
 public interface RateSnapshotRepository extends JpaRepository<RateSnapshotEntity, Integer> {
+    /**
+     * Loads a snapshot together with its exchange rates.
+     *
+     * @param id snapshot identifier
+     * @return matching snapshot with initialized rates, or an empty optional
+     */
     @Query("select snapshot from RateSnapshotEntity snapshot" +
             " left join fetch snapshot.rates" +
             " where snapshot.id = :id")

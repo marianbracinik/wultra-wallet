@@ -15,6 +15,9 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * Stores the CZK value of a quoted number of currency units within an exchange rate snapshot.
+ */
 @Entity
 @Table(name = "exchange_rate")
 @Getter

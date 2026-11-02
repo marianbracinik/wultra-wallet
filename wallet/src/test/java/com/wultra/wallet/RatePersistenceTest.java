@@ -4,7 +4,7 @@ import com.wultra.wallet.data.Rate;
 import com.wultra.wallet.exception.RateException;
 import com.wultra.wallet.service.DbServiceService;
 import com.wultra.wallet.domain.WalletEntity;
-import com.wultra.wallet.util.CnbRateParser;
+import com.wultra.wallet.util.RateSnapshotParser;
 import com.wultra.wallet.data.RateSnapshot;
 import com.wultra.wallet.repository.ExchangeRateRepository;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ class RatePersistenceTest {
         database().withPropertyValues("spring.jpa.properties.hibernate.generate_statistics=true").run(context -> {
             DbServiceService service = context.getBean(DbServiceService.class);
             assertThat(service.loadRateSnapshot()).isEmpty();
-            RateSnapshot snapshot = CnbRateParser.parse(WalletApiTest.CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
+            RateSnapshot snapshot = RateSnapshotParser.parse(WalletApiTest.CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
             service.saveRateSnapshot(snapshot);
             Statistics statistics = context.getBean(EntityManagerFactory.class).unwrap(SessionFactory.class).getStatistics();
             statistics.clear();
@@ -72,7 +72,7 @@ class RatePersistenceTest {
 
     @Test
     void fileDatabaseSurvivesReopeningAndFailedReplacementRollsBack() throws RateException {
-        RateSnapshot snapshot = CnbRateParser.parse(WalletApiTest.CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
+        RateSnapshot snapshot = RateSnapshotParser.parse(WalletApiTest.CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
         ApplicationContextRunner runner = database();
         runner.run(context -> {
             assertThat(context).hasNotFailed();
@@ -107,7 +107,7 @@ class RatePersistenceTest {
         database().run(context -> {
             assertThat(context).hasNotFailed();
             DbServiceService repository = context.getBean(DbServiceService.class);
-            RateSnapshot first = CnbRateParser.parse(WalletApiTest.CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
+            RateSnapshot first = RateSnapshotParser.parse(WalletApiTest.CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
             repository.saveRateSnapshot(first);
             RateSnapshot replacement = replacement(first);
             repository.saveRateSnapshot(replacement);

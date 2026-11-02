@@ -12,7 +12,11 @@ public abstract class WalletException extends Exception {
     private final String code;
 
     protected WalletException(HttpStatus status, String code, String message) {
-        super(message);
+        this(status, code, message, null);
+    }
+
+    protected WalletException(HttpStatus status, String code, String message, Throwable cause) {
+        super(message, cause);
         this.status = status;
         this.code = code;
     }

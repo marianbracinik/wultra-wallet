@@ -16,13 +16,25 @@ import java.util.*;
 
 import static com.wultra.wallet.data.Rate.RATE_CZK;
 
+/**
+ * Parses the CNB daily exchange rate feed into a validated snapshot containing the CZK base rate.
+ */
 @Slf4j
 @UtilityClass
-public final class CnbRateParser {
+public final class RateSnapshotParser {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM uuuu", Locale.ENGLISH)
             .withResolverStyle(ResolverStyle.STRICT);
 
+    /**
+     * Parses and validates the CNB daily feed and adds the CZK base rate.
+     *
+     * @param text CNB feed content
+     * @param fetchedAt retrieval timestamp to attach to the snapshot
+     * @param today latest allowed rate date
+     * @return validated exchange rate snapshot
+     * @throws RateException if the header, date, or any rate row is invalid
+     */
     public static RateSnapshot parse(String text, Instant fetchedAt, LocalDate today) throws RateException {
         List<String> lines = text.lines().toList();
 
@@ -35,7 +47,7 @@ public final class CnbRateParser {
         // parse rate date
         LocalDate rateDate;
         try {
-            rateDate = LocalDate.parse(lines.get(0).split(" #")[0], DATE_FORMATTER);
+            rateDate = LocalDate.parse(lines.getFirst().split(" #")[0], DATE_FORMATTER);
         } catch (DateTimeParseException exception) {
             throw new RateException("Invalid CNB rate date.");
         }

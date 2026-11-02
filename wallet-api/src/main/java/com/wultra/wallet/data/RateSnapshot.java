@@ -8,6 +8,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
 
+/**
+ * Immutable exchange rates indexed by currency code, with their publication date,
+ * retrieval timestamp, and freshness status from the latest refresh attempt.
+ */
 @Value
 public class RateSnapshot {
 
@@ -28,6 +32,13 @@ public class RateSnapshot {
         this.freshSnapshot = freshSnapshot;
     }
 
+    /**
+     * Returns the exchange rate for a currency in this snapshot.
+     *
+     * @param currencyCode currency code to look up
+     * @return rate expressed in CZK for its quoted units
+     * @throws RateException if the snapshot does not contain the currency
+     */
     public Rate getRate(String currencyCode) throws RateException {
         Rate result = rates.get(currencyCode);
         if (result == null) {

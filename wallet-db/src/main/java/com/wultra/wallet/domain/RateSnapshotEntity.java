@@ -15,6 +15,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Stores an exchange rate snapshot's publication date, retrieval timestamp, and associated rates.
+ */
 @Entity
 @Table(name = "rate_snapshot")
 @Getter

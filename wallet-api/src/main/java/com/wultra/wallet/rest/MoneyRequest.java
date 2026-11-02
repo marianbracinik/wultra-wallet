@@ -6,6 +6,9 @@ import lombok.Value;
 
 import java.math.BigDecimal;
 
+/**
+ * Currency code and amount submitted for a wallet deposit or withdrawal.
+ */
 @Value
 public class MoneyRequest {
     @NotNull

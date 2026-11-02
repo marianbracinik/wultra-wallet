@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+/**
+ * Manages transactional wallet balance updates and exchange rate snapshot persistence.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,15 @@ public class DbServiceService {
     private final RateSnapshotRepository rateSnapshotRepository;
     private final ExchangeRateRepository exchangeRateRepository;
 
+    /**
+     * Applies a signed balance change while holding a write lock on the wallet.
+     *
+     * @param owner wallet owner
+     * @param currency currency code
+     * @param delta amount to add, or a negative amount to subtract
+     * @return updated balance
+     * @throws WalletException if the wallet is missing or the resulting balance violates its limits
+     */
     @Transactional(rollbackFor = WalletException.class)
     public BigDecimal updateCurrencyBalance(String owner, String currency, BigDecimal delta) throws WalletException {
         // find the wallet
@@ -68,6 +80,12 @@ public class DbServiceService {
         return newBalance;
     }
 
+    /**
+     * Returns stored balances ordered by currency code.
+     *
+     * @param owner wallet owner
+     * @return balances by currency, or an empty map if none exist
+     */
     @Transactional(readOnly = true)
     public Map<String, BigDecimal> getBalances(String owner) {
         Map<String, BigDecimal> balances = new TreeMap<>();
@@ -77,12 +95,23 @@ public class DbServiceService {
         return balances;
     }
 
+    /**
+     * Deletes all balances belonging to an existing wallet.
+     *
+     * @param owner wallet owner
+     * @throws WalletException if the wallet does not exist
+     */
     @Transactional(rollbackFor = WalletException.class)
     public void clearAll(String owner) throws WalletException {
         walletRepository.findByOwner(owner).orElseThrow(WalletNotFoundException::new);
         balanceRepository.deleteAllByOwner(owner);
     }
 
+    /**
+     * Loads the persisted exchange rates and snapshot metadata.
+     *
+     * @return stored snapshot, or an empty optional if none exists
+     */
     @Transactional(readOnly = true)
     public Optional<RateSnapshot> loadRateSnapshot() {
         RateSnapshotEntity snapshot = rateSnapshotRepository.findWithRatesById(1).orElse(null);
@@ -96,6 +125,11 @@ public class DbServiceService {
         return Optional.of(new RateSnapshot(rates, snapshot.getRateDate(), snapshot.getFetchedAt()));
     }
 
+    /**
+     * Atomically replaces the stored snapshot, removing currencies absent from the new snapshot.
+     *
+     * @param snapshot rates and metadata to persist
+     */
     @Transactional
     public void saveRateSnapshot(RateSnapshot snapshot) {
         RateSnapshotEntity storedSnapshot = rateSnapshotRepository.findWithRatesById(1).orElse(null);

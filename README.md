@@ -13,10 +13,10 @@ The root `pom.xml` is the Maven parent and reactor aggregator for four modules:
 |---|---|
 | `wallet-api` | Shared REST request/response classes (`MoneyRequest`, `BalanceResponse`, `TotalResponse`), validation constraints and domain exceptions |
 | `wallet-db` | JPA entities, Spring Data repositories, H2 dependency and `schema.sql` |
-| `rate-fetch-client` | Auto-configured RestTemplate client, CNB response parsing and validation |
+| `wallet-rate-fetch-client` | Auto-configured RestTemplate client, CNB response parsing and validation |
 | `wallet` | Executable application, controllers, security/configuration, business/persistence services, CNB integration and integration tests |
 
-`wallet` depends on the three library modules. `rate-fetch-client` depends on `wallet-api`; the libraries do not depend on the application.
+`wallet` depends on the three library modules. `wallet-rate-fetch-client` depends on `wallet-api`; the libraries do not depend on the application.
 The client auto-configures a `RateFetchClient` bean and uses `restclient.rates.url`, `restclient.rates.connect-timeout` and `restclient.rates.request-timeout`.
 Provide your own `RateFetchClient` bean to replace it. Refresh scheduling, persistence and fallback remain in the application.
 HTTP responses are read by RestTemplate without a custom response size limit.

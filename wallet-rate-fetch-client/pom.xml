@@ -7,7 +7,7 @@
         <artifactId>wultra-wallet</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>rate-fetch-client</artifactId>
+    <artifactId>wallet-rate-fetch-client</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.wultra.wallet</groupId>

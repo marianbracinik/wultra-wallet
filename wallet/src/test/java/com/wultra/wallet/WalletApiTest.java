@@ -7,7 +7,7 @@ import com.wultra.wallet.repository.BalanceRepository;
 import com.wultra.wallet.service.DbServiceService;
 import com.wultra.wallet.service.RateService;
 import com.wultra.wallet.service.WalletService;
-import com.wultra.wallet.util.CnbRateParser;
+import com.wultra.wallet.util.RateSnapshotParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +71,7 @@ class WalletApiTest {
     @BeforeEach
     void setup() throws RateException {
         balanceRepository.deleteAllInBatch();
-        RateSnapshot snapshot = CnbRateParser.parse(CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
+        RateSnapshot snapshot = RateSnapshotParser.parse(CNB, Instant.parse("2026-11-02T10:00:00Z"), LocalDate.of(2026, 11, 2));
         when(rates.getRateSnapshot()).thenReturn(snapshot.withFreshSnapshot(true));
     }
 

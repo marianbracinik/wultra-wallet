@@ -44,12 +44,29 @@ public class WalletExceptionHandler extends ResponseEntityExceptionHandler {
         return super.handleExceptionInternal(exception, problem, headers, status, request);
     }
 
+    /**
+     * Creates a problem detail with an application error code.
+     *
+     * @param status HTTP error status
+     * @param code application error code
+     * @param detail error description
+     * @return populated problem detail
+     */
     public static ProblemDetail getProblem(HttpStatus status, String code, String detail) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
         problem.setProperty("code", code);
         return problem;
     }
 
+    /**
+     * Writes a problem detail as JSON with the specified HTTP status.
+     *
+     * @param response servlet response to write
+     * @param status HTTP error status
+     * @param code application error code
+     * @param detail error description
+     * @throws IOException if the response output stream cannot be obtained or written
+     */
     public static void writeToResponse(HttpServletResponse response, HttpStatus status, String code, String detail) throws IOException {
         response.setStatus(status.value());
         response.setContentType("application/problem+json");

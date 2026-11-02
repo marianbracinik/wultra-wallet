@@ -4,6 +4,9 @@ import lombok.Value;
 
 import java.math.BigDecimal;
 
+/**
+ * Exchange rate expressing the CZK value of a quoted number of currency units.
+ */
 @Value
 public class Rate {
 

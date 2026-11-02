@@ -16,10 +16,10 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>rate-fetch-client</module>
+        <module>wallet</module>
         <module>wallet-api</module>
         <module>wallet-db</module>
-        <module>wallet</module>
+        <module>wallet-rate-fetch-client</module>
     </modules>
 
     <properties>

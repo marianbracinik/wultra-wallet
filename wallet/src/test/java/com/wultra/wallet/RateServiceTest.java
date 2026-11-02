@@ -2,24 +2,27 @@ package com.wultra.wallet;
 
 import com.sun.net.httpserver.HttpServer;
 import com.wultra.wallet.configuration.WalletConfigurationProperties;
-import com.wultra.wallet.exception.RateException;
-import com.wultra.wallet.util.CnbRateParser;
-import com.wultra.wallet.rateclient.RateFetchClient;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import com.wultra.wallet.service.RateService;
-import com.wultra.wallet.service.DbServiceService;
 import com.wultra.wallet.data.RateSnapshot;
+import com.wultra.wallet.exception.RateException;
+import com.wultra.wallet.rateclient.RateFetchClient;
+import com.wultra.wallet.service.DbServiceService;
+import com.wultra.wallet.service.RateService;
+import com.wultra.wallet.util.RateSnapshotParser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import static org.assertj.core.api.Assertions.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class RateServiceTest {
@@ -86,7 +89,7 @@ class RateServiceTest {
 
     @Test
     void rejectsOlderAndInvalidDatedSnapshotsWithoutReplacingStoredRates() throws RateException {
-        RateSnapshot stored = CnbRateParser.parse(WalletApiTest.CNB, clock.instant(), LocalDate.now(clock));
+        RateSnapshot stored = RateSnapshotParser.parse(WalletApiTest.CNB, clock.instant(), LocalDate.now(clock));
         when(repository.loadRateSnapshot()).thenReturn(Optional.of(stored));
         RateService service = new RateService(repository, properties, client(), clock);
         for (String date : new String[]{"29 Oct 2026", "31 Feb 2026", "03 Nov 2026"}) {
@@ -111,14 +114,14 @@ class RateServiceTest {
 
     @Test
     void parserHandlesUnitsAndRejectsBadDatesDuplicatesAndZeroRates() throws RateException {
-        RateSnapshot snapshot = CnbRateParser.parse(WalletApiTest.CNB, clock.instant(), LocalDate.now(clock));
+        RateSnapshot snapshot = RateSnapshotParser.parse(WalletApiTest.CNB, clock.instant(), LocalDate.now(clock));
         assertThat(snapshot.getRates().get("JPY").getUnits()).isEqualTo(100);
         assertThat(snapshot.getRates().get("CZK").getCzkRate()).isEqualByComparingTo("1");
         for (String invalid : new String[]{WalletApiTest.CNB.replace("30 Oct 2026", "30 Oct 2027"),
                 WalletApiTest.CNB.replace("25.000", "0.000"),
                 WalletApiTest.CNB + "EMU|euro|1|EUR|25.000\n",
                 WalletApiTest.CNB.replace("|100|JPY|", "|0|JPY|")}) {
-            assertThatThrownBy(() -> CnbRateParser.parse(invalid, clock.instant(), LocalDate.now(clock)))
+            assertThatThrownBy(() -> RateSnapshotParser.parse(invalid, clock.instant(), LocalDate.now(clock)))
                     .isInstanceOf(RateException.class);
         }
     }

@@ -33,6 +33,11 @@ public class WalletConfigurationProperties {
         @NotNull
         private Duration refreshInterval;
 
+        /**
+         * Checks whether the refresh interval is configured and positive.
+         *
+         * @return true if the refresh interval is valid
+         */
         @AssertTrue(message = "Refresh interval must be positive")
         public boolean isValid() {
             return positive(refreshInterval);
@@ -51,6 +56,11 @@ public class WalletConfigurationProperties {
         @NotBlank
         private String bobPassword;
 
+        /**
+         * Returns a description that hides configured passwords.
+         *
+         * @return redacted configuration description
+         */
         @Override
         public String toString() { return "UsersConfig[--hidden--]"; }
     }

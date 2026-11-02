@@ -12,7 +12,7 @@
     <dependencies>
         <dependency>
             <groupId>com.wultra.wallet</groupId>
-            <artifactId>rate-fetch-client</artifactId>
+            <artifactId>wallet-rate-fetch-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

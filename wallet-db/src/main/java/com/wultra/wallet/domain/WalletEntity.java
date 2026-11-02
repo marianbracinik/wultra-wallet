@@ -10,6 +10,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents a wallet identified by its owner.
+ */
 @Entity
 @Table(name = "wallet")
 @Getter
