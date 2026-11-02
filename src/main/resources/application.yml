@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: wultra-wallet
+  datasource:
+    url: ${WALLET_DB_URL:jdbc:h2:file:./data/wallet;WRITE_DELAY=0}
+    username: sa
+    password: ${WALLET_DB_PASSWORD:}
+  sql:
+    init:
+      mode: always
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  mvc:
+    problemdetails:
+      enabled: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+server:
+  servlet:
+    session:
+      timeout: 15m
+      tracking-modes: cookie
+      cookie:
+        http-only: true
+        same-site: strict
+        secure: ${WALLET_SECURE_COOKIE:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+wallet:
+  users:
+    alice-password: ${WALLET_ALICE_PASSWORD:}
+    bob-password: ${WALLET_BOB_PASSWORD:}
+  rates:
+    url: https://www.cnb.cz/en/financial-markets/foreign-exchange-market/central-bank-exchange-rate-fixing/central-bank-exchange-rate-fixing/daily.txt
+    refresh-interval: 5m
+    connect-timeout: 2s
+    request-timeout: 4s
+springdoc:
+  show-login-endpoint: true

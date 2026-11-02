@@ -1,0 +1,7 @@
+target
+.git
+.idea
+data
+.env
+cookies.txt
+src/main/resources/application-development.yml

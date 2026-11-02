@@ -1,0 +1,84 @@
+Multicurrency Wallet Assignment
+
+Objective
+
+Build a small REST API in Java that acts as a multicurrency bank account using official
+exchange rates.
+
+We want to see how you design, build, and steer a solution, not how fast you can type.
+Using AI tools (Copilot, Claude, Cursor, agents, etc.) is allowed. You are fully
+responsible for every line you submit, and we will ask you to explain and change it in the
+follow-up interview.
+
+Time budget: about 2–3 hours. Prefer a smaller, well-reasoned solution over a large
+one. Anything you skip, note in the README.
+
+Functional Requirements
+
+As a user, I want to:
+
+● Deposit money in any currency.
+● Withdraw money in any currency. Only amounts equal to or lower than the
+balance of that currency can be withdrawn.
+● Get the total balance of all my money in a selected currency.
+
+
+Example workflow
+1. Deposit 10 USD
+2. Deposit 5 EUR
+3. Withdraw 3 USD
+4. Total balance in USD: 7 USD + 5 EUR (rate 1.16 → 5.8 USD) = 12.8 USD
+5. Total balance in EUR: 5 EUR + 7 USD (rate 0.86 → 6.02 EUR) = 11.02 EUR
+(Rates above are illustrative. Real CNB rates will give different numbers.)
+
+Non-Functional Requirements
+● Use Czech National Bank (CNB) exchange rates for the current day.
+● Interact through a REST API and provide an OpenAPI description.
+● Use Java and any libraries or frameworks you prefer.
+● In-memory persistence is sufficient.
+● Provide simple build and run instructions in the README so anyone can start the
+app with one or two commands.
+
+Things you need to decide (and document)
+
+The specification is intentionally incomplete. Make reasonable decisions and record
+them briefly in the README:
+
+1. Missing rates. CNB publishes no rates on weekends and public holidays. Which
+rate do you use, and how do you tell the client?
+2. Rate units. Some CNB rates are quoted per multiple units (e.g. 100 JPY, 100
+HUF). How do you handle this?
+3. CNB unavailable. What does the API do when CNB cannot be reached? Does it
+cache rates?
+4. Money precision. How do you represent amounts, and what rounding rules apply
+to conversions?
+5. Concurrency. What happens with simultaneous withdrawals from the same
+balance?
+6. Errors. What do clients receive for invalid input, unknown currency, or insufficient
+funds?
+7. CZK. CNB quotes rates against CZK. How do you treat CZK itself?
+
+
+Deliverables
+
+1. Working source code in a public Git repository.
+2. README.md with build/run instructions, API overview, design decisions (the list
+above), and known limitations.
+3. AI_USAGE.md (short, honest, about one page):
+
+
+o Which AI tools you used and for what.
+o How you steered them (key prompts, instructions, or agent configuration
+files you committed, if any).
+o One or two places where the AI was wrong, incomplete, or
+over-engineered, and what you did about it.
+o What you deliberately wrote or decided yourself.
+
+
+Optional extras (only if time remains)
+
+● Expose the wallet to AI agents (e.g. a small MCP server or a clear OpenAPI spec
+usable by an agent).
+● Containerization (Dockerfile).
+● Basic observability (structured logging, health endpoint).
+● Etc. (documented)
