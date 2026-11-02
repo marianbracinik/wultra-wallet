@@ -30,6 +30,18 @@ The author clarified that repository methods should use Spring Data query deriva
 EntityManager operations with JpaRepository interfaces and derived methods, and moved transactional operations
 to persistence services while preserving wallet locking and snapshot replacement semantics.
 
+The author requested one WalletConfigurationProperties class with nested rates/users groups. Codex consolidated
+property binding, retained existing YAML keys and password redaction, and tested nested validation. The full test suite
+also exposed missing ProblemDetail extension flattening in the standalone error ObjectMapper; Codex registered Spring's mixin.
+
+The author requested three Maven modules: wallet-db, wallet-api, and the main wallet application. Codex moved
+entities/repositories/schema to wallet-db, extracted shared REST DTOs to wallet-api, retained application orchestration
+and integration tests in wallet, and updated Maven dependencies, Docker packaging and run instructions.
+
+The author changed WalletException to a checked exception and requested concrete subclasses. Codex retained that
+choice, grouped amount/rate failures by reason, updated callers and added explicit transaction rollback for checked
+wallet failures. Tests cover the typed failure attributes, balance limits, missing rates and rollback of earlier changes.
+
 ## Corrections and human decisions
 
 - Codex initially proposed an in-memory-only rate cache. The author identified that rates should survive restart
@@ -45,7 +57,7 @@ No claims of manual human-written code or final human review are made here.
 
 ## Verification
 
-`mvn verify` passed all 13 tests. Automated tests use controlled rates. The packaged JAR also completed the example
+`mvn verify` passed all 18 tests. Automated tests use controlled rates. The packaged JAR also completed the example
 against live CNB and restored balances/rates after forced termination with CNB unavailable. Docker execution was not
 verified because the local daemon was not running.
 The author subsequently requested publishing the project to their GitHub account.

@@ -1,7 +1,10 @@
 target
+**/target
 .git
 .idea
 data
+**/data
 .env
 cookies.txt
 src/main/resources/application-development.yml
+wallet/src/main/resources/application-development.yml

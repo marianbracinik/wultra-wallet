@@ -40,6 +40,8 @@ build/
 .DS_Store
 
 /data/
+/wallet/data/
 .env
 cookies.txt
 /src/main/resources/application-development.yml
+/wallet/src/main/resources/application-development.yml
